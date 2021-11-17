@@ -13,7 +13,9 @@ ui <- fluidPage(
                                                        "Current Smoking",
                                                        "Diabetes",
                                                        "Physical Health")
-        )
+        ),
+        radioButtons("measure_year", "Year", choices = c("2017" = "2017",
+                                                            "2018" = "2018"))
     ),
     mainPanel(
         leafletOutput("comap")
@@ -23,7 +25,7 @@ server <- function(input, output, session) {
     
     sdoh_values <- reactive({
         lhi_df_poly %>% 
-        filter(short_question_text == input$sdoh) %>% 
+        filter(short_question_text == input$sdoh & year == input$measure_year) %>% 
             select(geometry, short_question_text, measure, NAME, data_value) %>% 
             mutate(data_value = as.numeric(data_value))
         
@@ -31,11 +33,15 @@ server <- function(input, output, session) {
 
     
     output$comap <- renderLeaflet({
+        
+        pal <- colorNumeric(palette = "YlOrRd", domain = sdoh_values()$data_value)
+        
             leaflet(sdoh_values()) %>% 
             addProviderTiles(providers$CartoDB.Positron) %>% 
             addPolygons(
                         color = "white", weight = 1, smoothFactor = 0.5,
                         opacity = 1.0, fillOpacity = 0.3, dashArray = "3",
+                        fillColor = ~pal(data_value),
                         highlightOptions = highlightOptions(color = "#666",
                                                             dashArray = "",
                                                             weight = 5,

@@ -12,33 +12,19 @@ lhi_df <- places_df %>%
     filter(stateabbr == "CO") %>% 
     filter(measureid %in% c("DIABETES", "CSMOKING", "BPHIGH",
                           "COLON_SCREEN", "PHLTH", "BINGE")) %>% 
-    select(geolocation, data_value, year, stateabbr, data_value_type,
-           countyname, countyfips, category, measure,
-           short_question_text) 
+    select(stateabbr, data_value_type,
+           countyname, category, measure,
+           short_question_text, year, data_value) %>% 
+    rename(NAME = countyname)
 
 rm(places_df)
-
-#separate lat/lon col for mapping
-lhi_df_geo <- lhi_df %>% 
-    separate(geolocation, into = c("delete", "lon", "lat"),
-             sep = " ") 
-
-lhi_df_geo <- lhi_df_geo %>% 
-    mutate(lon = str_sub(lhi_df_geo$lon, 2),
-           lon = as.numeric(lon),
-           lat = str_sub(lhi_df_geo$lat, 1, -2),
-           lat = as.numeric(lat)) %>% 
-    select(- delete) %>% 
-    rename(NAME = countyname)
 
 #tigris colorado counties
 co_counties <- counties(state = "CO", cb = TRUE) %>% 
     select(NAME, geometry)
 
-#join
-lhi_df_poly <- left_join(co_counties, lhi_df_geo, by = "NAME")
+#left join to keep sf class
+lhi_df_poly <- left_join(co_counties, lhi_df, by = "NAME")
 
-test <- lhi_df_poly %>% 
-    select(-lat, -lon)
 
 
