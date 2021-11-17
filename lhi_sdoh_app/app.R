@@ -3,11 +3,12 @@ library(leaflet)
 
 ui <- fluidPage(
 
-    titlePanel("Social Determinants of Health Indicators in Colorado"),
+    titlePanel("Social Determinants of Health Indicators in US"),
     
     
     sidebarLayout(
         sidebarPanel(
+            selectInput("state_choice", "State", choices = state.abb),
             selectInput("sdoh", "Indicator", choices = c("Binge Drinking",
                                                        "Colorectal Cancer Screening",
                                                        "Current Smoking",
@@ -15,24 +16,27 @@ ui <- fluidPage(
                                                        "Physical Health")
         ),
         radioButtons("measure_year", "Year", choices = c("2017" = "2017",
-                                                            "2018" = "2018"))
+                                                            "2018" = "2018"),
+                     selected = "2018")
     ),
     mainPanel(
-        leafletOutput("comap")
+        leafletOutput("usmap")
 )))
 
 server <- function(input, output, session) {
     
     sdoh_values <- reactive({
-        lhi_df_poly %>% 
-        filter(short_question_text == input$sdoh & year == input$measure_year) %>% 
+        lhi_df_poly_all %>% 
+        filter(stateabbr == input$state_choice &
+               short_question_text == input$sdoh & 
+                   year == input$measure_year) %>% 
             select(geometry, short_question_text, measure, NAME, data_value) %>% 
             mutate(data_value = as.numeric(data_value))
         
         })
 
     
-    output$comap <- renderLeaflet({
+    output$usmap <- renderLeaflet({
         
         pal <- colorNumeric(palette = "YlOrRd", domain = sdoh_values()$data_value)
         

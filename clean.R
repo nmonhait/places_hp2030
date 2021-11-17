@@ -9,7 +9,7 @@ places_df <- read.socrata("https://chronicdata.cdc.gov/resource/cwsq-ngmh.csv", 
 
 #LHI full dataset
 lhi_df <- places_df %>% 
-    filter(stateabbr == "CO") %>% 
+  #  filter(stateabbr == "CO") %>% 
     filter(measureid %in% c("DIABETES", "CSMOKING", "BPHIGH",
                           "COLON_SCREEN", "PHLTH", "BINGE")) %>% 
     select(stateabbr, data_value_type,
