@@ -1,0 +1,40 @@
+---
+title: "Data Import and Clean"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries}
+library(RSocrata)
+library(tidyverse)
+library(tigris)
+library(sf)
+```
+
+```{r}
+token <- "HjmpNFriNeZLinjGja4YYp9UQ"
+places_df <- read.socrata("https://chronicdata.cdc.gov/resource/cwsq-ngmh.csv", app_token = token)
+```
+
+```{r}
+lhi_df_all <- places_df %>% 
+    filter(measureid %in% c("DIABETES", "CSMOKING", "BPHIGH",
+                            "COLON_SCREEN", "PHLTH", "BINGE")) %>% 
+    select(stateabbr, data_value_type,
+           countyname, category, measure,
+           short_question_text, year, data_value) %>% 
+    rename(NAME = countyname)
+
+rm(places_df)
+
+counties_all <- counties(cb = TRUE) %>% 
+    select(NAME, geometry)
+```
+
+```{r}
+lhi_df_poly_all <- left_join(counties_all, lhi_df_all, by = "NAME") 
+```
+
