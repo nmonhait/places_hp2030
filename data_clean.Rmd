@@ -12,6 +12,7 @@ library(RSocrata)
 library(tidyverse)
 library(tigris)
 library(sf)
+library(pins)
 ```
 
 ```{r}
@@ -36,5 +37,13 @@ counties_all <- counties(cb = TRUE) %>%
 
 ```{r}
 lhi_df_poly_all <- left_join(counties_all, lhi_df_all, by = "NAME") 
+```
+
+```{r}
+board <- board_local()
+```
+
+```{r}
+board %>% pin_write(lhi_df_poly_all)
 ```
 
