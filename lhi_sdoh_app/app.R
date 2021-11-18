@@ -27,10 +27,11 @@ server <- function(input, output, session) {
     
     sdoh_values <- reactive({
         lhi_df_poly_all %>% 
-        filter(stateabbr == input$state_choice &
-               short_question_text == input$sdoh & 
-                   year == input$measure_year) %>% 
-            select(geometry, short_question_text, measure, NAME, data_value) %>% 
+        filter(stateabbr == input$state_choice) %>% 
+        filter(short_question_text == input$sdoh) %>% 
+        filter(year == input$measure_year) %>% 
+            select(geometry, short_question_text, measure, NAME, data_value,
+                   stateabbr) %>% 
             mutate(data_value = as.numeric(data_value))
         
         })
