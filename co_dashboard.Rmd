@@ -1,8 +1,8 @@
 ---
-title: "Untitled"
+title: "Healthy People 2030 Leading Health Indicators in Colorado"
 output: 
   flexdashboard::flex_dashboard:
-    vertical_layout: fill
+    orientation: rows
 runtime: shiny
 ---
 
@@ -16,15 +16,15 @@ library(sf)
 
 board <- board_local()
 lhi_df_co <- pin_read('lhi_df_co', board = board)
+income_poverty_poly <- pin_read('income_poverty_poly', board = board)
 ```
 
-Inputs {.sidebar}
+row
 ---------------------------------------------------------------------------------------
-Explanation of HP2030, Places, SDOH
 
-```{r inputs}
+```{r}
 sidebarPanel(
-    selectInput("sdoh", "Indicator", choices = c("Binge Drinking",
+    selectInput("sdoh", "Health Indicator", choices = c("Binge Drinking",
                                                        "Colorectal Cancer Screening",
                                                        "Current Smoking",
                                                        "Diabetes",
@@ -33,13 +33,16 @@ sidebarPanel(
         ),
 radioButtons("measure_year", "Year", choices = c("2017" = "2017",
                                                             "2018" = "2018"),
-                     selected = "2018"))
+                     selected = "2018"),
+
+#radioButtons("income_poverty", "Choose One", choices = c("Median Household Income",
+#                                                         "Percent Poverty"))
+
+)
 ```
 
-Row
+Row {data-height=1050}
 -----------------------------------------------------------------------
-
-### Colorado Map
 
 ```{r}
     sdoh_values <- reactive({
@@ -51,16 +54,22 @@ Row
         
         })
 
+#    income_poverty_values <- reactive({
+#        income_poverty_poly %>% 
+#            select(input$income_poverty, NAME.y, geometry)
+#       })
+
     
 renderLeaflet({
         
-        pal <- colorNumeric(palette = "YlOrRd", domain = sdoh_values()$data_value)
+        pal <- colorNumeric(palette = "Greys", domain = sdoh_values()$data_value)
+        pal_2 <- colorNumeric(palette = "YlOrRd", domain = income_poverty_poly$poverty_percent)
         
             leaflet(sdoh_values()) %>% 
             addTiles() %>% 
             addPolygons(
-                        color = "white", weight = 1, smoothFactor = 0.5,
-                        opacity = 1.0, fillOpacity = 0.3, dashArray = "3",
+                        color = NA, weight = NA, smoothFactor = NA,
+                        opacity = 1.0, fillOpacity = 0.3, dashArray = NA,
                         fillColor = ~pal(data_value),
                         highlightOptions = highlightOptions(color = "#666",
                                                             dashArray = "",
@@ -69,7 +78,10 @@ renderLeaflet({
                         label = ~paste0(NAME, " ", "County", ": ",
                                         "Crude Prevalence = ", data_value)) %>% 
             addLegend(pal = pal, values = ~data_value, opacity = 0.7, title = "Crude Prevalance",,
-                      position = "bottomright")
+                      position = "bottomright") %>% 
+            addPolylines(data = income_poverty_poly,
+                         opacity = 1.0, fillOpacity = 0.5, smoothFactor = 0.5, weight = 3,
+                        color = ~pal_2(poverty_percent))
     })
 
 ```
